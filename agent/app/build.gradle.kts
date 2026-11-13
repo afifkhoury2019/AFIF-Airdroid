@@ -39,6 +39,15 @@ android {
                 signingConfig = signingConfigs.getByName("ci")
             }
         }
+
+        // Installable without a keystore, but NOT marked debuggable.
+        // android:debuggable="true" is one of the strongest Play Protect signals,
+        // so a sideload build keeps the debug key but drops the debug flag.
+        create("sideload") {
+            initWith(getByName("release"))
+            isDebuggable = false
+            signingConfig = signingConfigs.getByName("debug")
+        }
     }
 
     compileOptions {

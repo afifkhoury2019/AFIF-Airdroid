@@ -72,8 +72,8 @@ jobs:
             export SIGNING_KEY_PASSWORD="${KEY_PASS:-}"
             TASK="Release"; DIR="release"
           else
-            echo "::notice::No keystore secret set - building debug APKs (Play Protect will warn)."
-            TASK="Debug"; DIR="debug"
+            echo "::notice::No keystore secret - building non-debuggable sideload APKs."
+            TASK="Sideload"; DIR="sideload"
           fi
           gradle "assembleStandard${TASK}" "assembleSms${TASK}" --no-daemon --stacktrace
           for f in standard sms; do
