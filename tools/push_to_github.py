@@ -169,9 +169,9 @@ def main():
         entries.append({"path": rel, "mode": "100644", "type": "blob", "sha": r["sha"]})
     print("blobs uploaded: %d" % len(entries))
 
+    # Build a complete tree rather than merging into base_tree: merging never removes
+    # files that were deleted locally, which silently keeps stale sources in the repo.
     tree_body = {"tree": entries}
-    if base_tree:
-        tree_body["base_tree"] = base_tree
     st, tree = call("POST", "/repos/%s/%s/git/trees" % (owner, name), tok, tree_body)
     if st not in (200, 201):
         sys.exit("tree failed: %s" % tree.get("message"))
