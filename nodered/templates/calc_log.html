@@ -1,0 +1,76 @@
+<div class="cl-wrap">
+  <div class="cl-empty" ng-if="!rows.length">
+    No calculations yet &mdash; press <b>Send to flow</b> on any tool.
+  </div>
+
+  <div class="cl-row" ng-repeat="r in rows track by r.id">
+    <div class="cl-top">
+      <span class="cl-tool">{{ r.label }}</span>
+      <span class="cl-ts">{{ r.ts }}</span>
+    </div>
+    <div class="cl-vals">{{ r.summary }}</div>
+  </div>
+</div>
+
+<style>
+  .cl-wrap { font-family: 'Segoe UI', Arial, sans-serif; max-height: 300px; overflow-y: auto; padding: 2px; }
+  .cl-empty { color: #4d699a; font-size: .78rem; padding: 10px 4px; }
+  .cl-row { border-left: 2px solid #00d4ff55; background: #081530; border-radius: 6px;
+    padding: 6px 9px; margin-bottom: 6px; }
+  .cl-row:hover { border-left-color: #00d4ff; }
+  .cl-top { display: flex; justify-content: space-between; align-items: baseline; }
+  .cl-tool { color: #7fe3ff; font-size: .76rem; font-weight: 600; }
+  .cl-ts { color: #4d699a; font-size: .62rem; font-family: Consolas, monospace; }
+  .cl-vals { color: #a8c4f0; font-size: .72rem; font-family: Consolas, monospace;
+    margin-top: 3px; line-height: 1.45; word-break: break-word; }
+  .cl-wrap::-webkit-scrollbar { width: 6px; }
+  .cl-wrap::-webkit-scrollbar-thumb { background: #1e3a6e; border-radius: 3px; }
+</style>
+
+<script>
+  (function (scope) {
+    scope.rows = scope.rows || [];
+    var MAX = 12;
+
+    var LABEL = {
+      three_phase: 'Three-Phase Power', energy_cost: 'Energy & Cost',
+      ct_pt: 'CT / PT Scaling', voltage_drop: 'Voltage Drop',
+      pf_correction: 'PF Correction', transformer: 'Transformer Sizing',
+      motor_fla: 'Motor FLA', load_factor: 'Load & Loss Factor'
+    };
+
+    function n(v, d) {
+      if (v === undefined || v === null || isNaN(v)) return '—';
+      return Number(v).toFixed(d === undefined ? 1 : d);
+    }
+
+    function summarise(tool, o) {
+      o = o || {};
+      switch (tool) {
+        case 'three_phase':  return n(o.kva,1) + ' kVA · ' + n(o.kw,2) + ' kW · ' + n(o.kvar,2) + ' kVAR';
+        case 'energy_cost':  return n(o.kwhDay,1) + ' kWh/day · ' + n(o.kwhMonth,0) + ' kWh/mo · ' + n(o.costMonth,0) + ' cost/mo';
+        case 'ct_pt':        return 'multiplier ' + n(o.mult,2) + ' · primary ' + n(o.primary,1);
+        case 'voltage_drop': return n(o.vd,2) + ' V (' + n(o.pct,2) + '%)';
+        case 'pf_correction':return n(o.kvar,1) + ' kVAR needed · ' + n(o.saved,1) + ' kVA released';
+        case 'transformer':  return n(o.required,1) + ' kVA required → ' + n(o.std,0) + ' kVA std @ ' + n(o.loading,1) + '%';
+        case 'motor_fla':    return n(o.fla,2) + ' A FLA · ' + n(o.starter,2) + ' A DOL inrush';
+        case 'load_factor':  return n(o.lf,1) + '% load factor · ' + n(o.annual,0) + ' kWh/yr';
+        default:             return JSON.stringify(o);
+      }
+    }
+
+    scope.$watch('msg', function (msg) {
+      if (!msg || !msg.payload || !msg.payload.tool) return;
+      var p = msg.payload;
+      var t = new Date(p.ts || Date.now());
+      scope.rows.unshift({
+        id: p.id || (Date.now() + Math.random()),
+        tool: p.tool,
+        label: LABEL[p.tool] || p.tool,
+        ts: t.toLocaleTimeString(),
+        summary: summarise(p.tool, p.outputs)
+      });
+      if (scope.rows.length > MAX) scope.rows.length = MAX;
+    });
+  })(scope);
+</script>

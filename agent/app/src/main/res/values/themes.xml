@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.AfifLink" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/afif_accent</item>
+        <item name="colorOnPrimary">#04121F</item>
+        <item name="android:colorBackground">@color/afif_bg</item>
+        <item name="colorSurface">@color/afif_surface</item>
+        <item name="colorOnSurface">@color/afif_text</item>
+        <item name="android:statusBarColor">@color/afif_bg</item>
+        <item name="android:navigationBarColor">@color/afif_bg</item>
+    </style>
+</resources>

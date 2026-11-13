@@ -1,0 +1,95 @@
+[
+    {
+        "id": "afif-link-tab",
+        "type": "ui_tab",
+        "name": "Device Link",
+        "icon": "devices",
+        "order": 7,
+        "disabled": false,
+        "hidden": false
+    },
+    {
+        "id": "afif-link-group",
+        "type": "ui_group",
+        "name": "AFIF Link – phone agent",
+        "tab": "afif-link-tab",
+        "order": 1,
+        "disp": true,
+        "width": "30",
+        "collapse": false
+    },
+    {
+        "id": "afif-link-status",
+        "type": "ui_template",
+        "z": "afif-link-tab",
+        "group": "afif-link-group",
+        "name": "Agent Status",
+        "order": 1,
+        "width": 30,
+        "height": 6,
+        "format": "<div class=\"ls-wrap\">\n  <div class=\"ls-head\">\n    <span class=\"ls-led\" ng-class=\"online ? 'on' : 'off'\"></span>\n    <span class=\"ls-name\">{{ device || 'no device' }}</span>\n    <span class=\"ls-ts\">{{ ts || '—' }}</span>\n  </div>\n\n  <div class=\"ls-grid\">\n    <div class=\"ls-cell\"><i>Battery</i><b>{{ battery === undefined || battery === null ? '—' : battery + '%' }}</b></div>\n    <div class=\"ls-cell\"><i>Charging</i><b>{{ charging === undefined ? '—' : (charging ? 'yes' : 'no') }}</b></div>\n    <div class=\"ls-cell\"><i>Network</i><b>{{ network || '—' }}</b></div>\n    <div class=\"ls-cell\"><i>Signal</i><b>{{ rssi === undefined ? '—' : rssi + ' dBm' }}</b></div>\n    <div class=\"ls-cell\"><i>Free disk</i><b>{{ storageFree || '—' }}</b></div>\n    <div class=\"ls-cell\"><i>IP</i><b>{{ ip || '—' }}</b></div>\n  </div>\n\n  <div class=\"ls-foot\" ng-if=\"!online\">\n    Nothing heard yet. The agent publishes to <code>afif/link/&lt;device&gt;/state</code>.\n  </div>\n</div>\n\n<style>\n  .ls-wrap { font-family: 'Segoe UI', Arial, sans-serif; padding: 2px; }\n  .ls-head { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }\n  .ls-led { width: 9px; height: 9px; border-radius: 50%; background: #4a5f8a; flex: none; }\n  .ls-led.on { background: #00e676; box-shadow: 0 0 8px #00e67699; }\n  .ls-led.off { background: #ff5252; box-shadow: 0 0 8px #ff525299; }\n  .ls-name { color: #e0f0ff; font-weight: 600; font-size: .9rem; }\n  .ls-ts { margin-left: auto; color: #4d699a; font-size: .65rem; font-family: Consolas, monospace; }\n\n  .ls-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(92px, 1fr)); gap: 7px; }\n  .ls-cell { background: #081530; border: 1px solid #16305c; border-radius: 7px;\n    padding: 7px 8px; text-align: center; }\n  .ls-cell i { display: block; font-style: normal; font-size: .6rem; color: #5f7bad;\n    text-transform: uppercase; letter-spacing: .04em; }\n  .ls-cell b { display: block; color: #7fe3ff; font-size: .85rem; font-family: Consolas, monospace;\n    margin-top: 3px; }\n\n  .ls-foot { margin-top: 9px; font-size: .68rem; color: #4d699a; }\n  .ls-foot code { background: #0e1f3d; padding: 1px 4px; border-radius: 3px; color: #8fd4ff; }\n</style>\n\n<script>\n  (function (scope) {\n    scope.$watch('msg', function (msg) {\n      if (!msg || !msg.payload || typeof msg.payload !== 'object') return;\n      var p = msg.payload;\n      scope.device = p.device;\n      scope.online = p.online !== false;\n      scope.ts = p.ts || new Date().toLocaleTimeString();\n      scope.battery = p.battery;\n      scope.charging = p.charging;\n      scope.network = p.network;\n      scope.rssi = p.rssi;\n      scope.storageFree = p.storageFree;\n      scope.ip = p.ip;\n      scope.uptime = p.uptime;\n    });\n  })(scope);\n</script>\n",
+        "storeOutMessages": true,
+        "fwdInMessages": true,
+        "resendOnRefresh": true,
+        "templateScope": "local",
+        "x": 380,
+        "y": 160,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "afif-broker",
+        "type": "mqtt-broker",
+        "name": "AFIF Lab broker",
+        "broker": "127.0.0.1",
+        "port": "1883",
+        "clientid": "",
+        "autoConnect": true,
+        "usetls": false,
+        "protocolVersion": "4",
+        "keepalive": "60",
+        "cleansession": true
+    },
+    {
+        "id": "afif-mqtt-in",
+        "type": "mqtt in",
+        "z": "afif-link-tab",
+        "name": "agent state",
+        "topic": "afif/link/+/state",
+        "qos": "0",
+        "datatype": "json",
+        "broker": "afif-broker",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 170,
+        "y": 240,
+        "wires": [
+            [
+                "afif-state-fn"
+            ]
+        ]
+    },
+    {
+        "id": "afif-state-fn",
+        "type": "function",
+        "z": "afif-link-tab",
+        "name": "Normalise state",
+        "func": "var d = (msg.topic || '').split('/')[2] || 'unknown';\nvar s = msg.payload || {};\nmsg.payload = {\n  device: d, online: true, ts: new Date().toLocaleTimeString(),\n  battery: s.battery, charging: s.charging, storageFree: s.storageFree,\n  network: s.network, rssi: s.rssi, uptime: s.uptime, ip: s.ip\n};\nreturn msg;",
+        "outputs": 1,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 400,
+        "y": 240,
+        "wires": [
+            [
+                "afif-link-status"
+            ]
+        ]
+    }
+]

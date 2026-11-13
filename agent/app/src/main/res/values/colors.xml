@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="afif_bg">#0A1428</color>
+    <color name="afif_surface">#0F1C3A</color>
+    <color name="afif_accent">#00D4FF</color>
+    <color name="afif_text">#C8D8FF</color>
+    <color name="afif_muted">#7F9DD0</color>
+    <color name="afif_ok">#00E676</color>
+    <color name="afif_err">#FF5252</color>
+</resources>

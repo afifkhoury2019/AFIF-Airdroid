@@ -1,0 +1,199 @@
+<div class="aw-shell" ng-class="{'aw-full': isFull}">
+  <div class="aw-card">
+
+    <div class="aw-head">
+      <span class="aw-led" ng-class="state"></span>
+      <div class="aw-titles">
+        <h3>{{ title }}</h3>
+        <span class="aw-sub">{{ subtitle }}</span>
+      </div>
+      <div class="aw-actions">
+        <button class="aw-btn" ng-click="reload()" title="Reload">&#8635;</button>
+        <button class="aw-btn" ng-click="toggleFull()" title="Maximise">{{ isFull ? '&#10006;' : '&#10530;' }}</button>
+        <button class="aw-btn" ng-click="popout()" title="Open in new tab">&#8599;</button>
+      </div>
+    </div>
+
+    <div class="aw-bar">
+      <input class="aw-url" type="text" ng-model="draft" ng-keydown="$event.keyCode===13 && go()"
+             spellcheck="false" placeholder="https://powerchain.uk/ui/#!/5" />
+      <button class="aw-btn aw-go" ng-click="go()">Open</button>
+      <select class="aw-sel" ng-model="preset" ng-change="applyPreset()">
+        <option value="">Presets…</option>
+        <option value="eng">Engineering tab (#5)</option>
+        <option value="home">Dashboard home</option>
+        <option value="phone">Phone agent (LAN)</option>
+        <option value="custom">Custom…</option>
+      </select>
+    </div>
+
+    <div class="aw-body">
+      <iframe ng-if="src && !blocked" class="aw-frame" ng-attr-src="{{ src }}"
+              referrerpolicy="same-origin" allow="fullscreen; clipboard-read; clipboard-write"></iframe>
+
+      <div class="aw-placeholder" ng-if="!src">
+        <div class="aw-ph-icon">&#9783;</div>
+        <p>No target loaded.</p>
+        <p class="aw-hint">Send <code>msg.src</code> (plus optional <code>msg.title</code>) into this node,
+          or pick a preset above.</p>
+      </div>
+
+      <div class="aw-placeholder aw-warn" ng-if="blocked">
+        <div class="aw-ph-icon">&#9888;</div>
+        <p>{{ blockedReason }}</p>
+        <p class="aw-hint">Browsers refuse <code>http://</code> frames inside an <code>https://</code> dashboard
+          (mixed content). Use an <code>https</code> target or a reverse proxy.</p>
+        <button class="aw-btn aw-go" ng-click="popout()">Open in a new tab instead</button>
+      </div>
+    </div>
+
+    <div class="aw-foot">
+      <span class="aw-status" ng-class="state">{{ statusText }}</span>
+      <span class="aw-spacer"></span>
+      <span class="aw-meta">{{ lastLoad || '—' }}</span>
+    </div>
+
+  </div>
+</div>
+
+<style>
+  .aw-shell { width: 100%; height: 100%; min-height: 520px; box-sizing: border-box; padding: 0 4px; }
+  .aw-shell.aw-full { position: fixed; inset: 0; z-index: 9999; background: #070f1e; padding: 8px; }
+
+  .aw-card {
+    display: flex; flex-direction: column; height: 100%;
+    background: linear-gradient(160deg, #0f1c3a 0%, #0a1428 100%);
+    border: 1px solid #1e3a6e; border-radius: 12px;
+    box-shadow: 0 8px 26px rgba(0, 0, 40, 0.65);
+    overflow: hidden; font-family: 'Segoe UI', Arial, sans-serif;
+  }
+
+  .aw-head { display: flex; align-items: center; gap: 10px; padding: 10px 14px;
+    background: #0b1e4a; border-bottom: 1px solid #1e3a6e; }
+  .aw-titles { display: flex; flex-direction: column; min-width: 0; flex: 1; }
+  .aw-titles h3 { margin: 0; font-size: 1rem; font-weight: 600; color: #e0f0ff;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .aw-sub { font-size: .72rem; color: #6f8cc4; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  .aw-led { width: 9px; height: 9px; border-radius: 50%; flex: none;
+    background: #4a5f8a; box-shadow: 0 0 0 3px rgba(74,95,138,.18); }
+  .aw-led.ok { background: #00e676; box-shadow: 0 0 8px #00e67699; }
+  .aw-led.busy { background: #ffb300; box-shadow: 0 0 8px #ffb30099; }
+  .aw-led.err { background: #ff5252; box-shadow: 0 0 8px #ff525299; }
+
+  .aw-actions { display: flex; gap: 6px; }
+  .aw-btn { background: #12294f; color: #a0d0ff; border: 1px solid #24467f;
+    border-radius: 7px; padding: 5px 10px; cursor: pointer; font-size: .85rem; line-height: 1;
+    transition: all .18s ease; }
+  .aw-btn:hover { background: #1b3a6b; color: #7fe3ff; border-color: #00d4ff88; }
+  .aw-btn.aw-go { background: #00496b; color: #7fe3ff; border-color: #007ea8; font-weight: 600; }
+
+  .aw-bar { display: flex; gap: 8px; padding: 8px 12px; background: #081530;
+    border-bottom: 1px solid #16305c; }
+  .aw-url { flex: 1; min-width: 0; background: #050d1d; color: #9fc4ff;
+    border: 1px solid #1e3a6e; border-radius: 7px; padding: 6px 10px; font-size: .78rem;
+    font-family: Consolas, monospace; outline: none; }
+  .aw-url:focus { border-color: #00d4ff88; }
+  .aw-sel { background: #12294f; color: #a0d0ff; border: 1px solid #24467f;
+    border-radius: 7px; padding: 6px 8px; font-size: .78rem; }
+
+  .aw-body { position: relative; flex: 1; min-height: 380px; background: #060e1e; }
+  .aw-frame { width: 100%; height: 100%; min-height: 380px; border: 0; display: block; background: #060e1e; }
+
+  .aw-placeholder { position: absolute; inset: 0; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 6px; text-align: center;
+    color: #7f9dd0; padding: 24px; }
+  .aw-placeholder.aw-warn { color: #ffcf6b; }
+  .aw-ph-icon { font-size: 2.4rem; opacity: .55; }
+  .aw-hint { font-size: .78rem; color: #5f7bad; max-width: 460px; }
+  .aw-hint code { background: #0e1f3d; padding: 1px 5px; border-radius: 4px; color: #8fd4ff; }
+
+  .aw-foot { display: flex; align-items: center; gap: 8px; padding: 6px 12px;
+    background: #081530; border-top: 1px solid #16305c; font-size: .72rem; }
+  .aw-status { color: #6f8cc4; }
+  .aw-status.ok { color: #00e676; }
+  .aw-status.busy { color: #ffb300; }
+  .aw-status.err { color: #ff5252; }
+  .aw-spacer { flex: 1; }
+  .aw-meta { color: #4d699a; font-family: Consolas, monospace; }
+</style>
+
+<script>
+  (function (scope) {
+    scope.title = scope.title || 'Access Window';
+    scope.subtitle = scope.subtitle || 'Embedded console';
+    scope.draft = scope.src || '';
+    scope.state = '';
+    scope.statusText = 'idle';
+    scope.isFull = false;
+    scope.blocked = false;
+    scope.preset = '';
+
+    var PRESETS = {
+      eng:   { src: 'https://powerchain.uk/ui/#!/5', title: 'Engineering Tools' },
+      home:  { src: 'https://powerchain.uk/ui/',      title: 'PowerChain Dashboard' },
+      phone: { src: 'https://',                       title: 'Phone Agent' }
+    };
+
+    function setState(s, text) {
+      scope.state = s;
+      scope.statusText = text;
+    }
+
+    scope.load = function (url, label) {
+      if (!url) { scope.blocked = false; return; }
+      scope.blocked = false;
+      // Mixed-content guard: an https dashboard cannot frame an http origin.
+      var pageHttps = (location.protocol === 'https:');
+      if (pageHttps && /^http:\/\//i.test(url)) {
+        scope.blocked = true;
+        scope.blockedReason = 'Blocked: "' + url + '" is http:// inside an https:// dashboard.';
+        setState('err', 'mixed content');
+        return;
+      }
+      scope.src = url;
+      if (label) scope.title = label;
+      scope.draft = url;
+      scope.lastLoad = new Date().toLocaleTimeString();
+      setState('busy', 'loading…');
+      // No reliable load event cross-origin; treat as up shortly after assignment.
+      setTimeout(function () { setState('ok', 'connected'); }, 1200);
+    };
+
+    scope.reload = function () {
+      if (!scope.src) return;
+      var s = scope.src;
+      scope.src = '';
+      setState('busy', 'reloading…');
+      setTimeout(function () { scope.src = s; setState('ok', 'connected'); }, 120);
+    };
+
+    scope.go = function () { scope.load(scope.draft, scope.title); };
+
+    scope.applyPreset = function () {
+      var p = PRESETS[scope.preset];
+      if (!p) return;
+      if (scope.preset === 'phone') {
+        var host = window.prompt('Phone agent address (LAN), e.g. 192.168.1.42:8080', '192.168.1.42:8080');
+        if (host) scope.load('http://' + host + '/', 'Phone Agent');
+        return;
+      }
+      scope.load(p.src, p.title);
+    };
+
+    scope.toggleFull = function () { scope.isFull = !scope.isFull; };
+
+    scope.popout = function () {
+      if (scope.src) window.open(scope.src, '_blank', 'noopener');
+    };
+
+    // Node-RED input
+    scope.$watch('msg', function (msg) {
+      if (!msg) return;
+      if (msg.src) scope.load(msg.src, msg.title);
+      else if (msg.title) scope.title = msg.title;
+      if (msg.reload) scope.reload();
+      if (msg.fullscreen !== undefined) scope.isFull = !!msg.fullscreen;
+    });
+  })(scope);
+</script>

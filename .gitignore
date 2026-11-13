@@ -1,0 +1,31 @@
+# Android
+*.apk
+*.aab
+*.ap_
+*.dex
+*.class
+local.properties
+.gradle/
+build/
+captures/
+.cxx/
+*.jks
+*.keystore
+!debug.keystore
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# Python
+__pycache__/
+*.pyc
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Local working copies
+nodered/source-flows.json
+nodered/flows-engineering-tab.merged.json

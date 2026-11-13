@@ -1,0 +1,60 @@
+<div class="ls-wrap">
+  <div class="ls-head">
+    <span class="ls-led" ng-class="online ? 'on' : 'off'"></span>
+    <span class="ls-name">{{ device || 'no device' }}</span>
+    <span class="ls-ts">{{ ts || '—' }}</span>
+  </div>
+
+  <div class="ls-grid">
+    <div class="ls-cell"><i>Battery</i><b>{{ battery === undefined || battery === null ? '—' : battery + '%' }}</b></div>
+    <div class="ls-cell"><i>Charging</i><b>{{ charging === undefined ? '—' : (charging ? 'yes' : 'no') }}</b></div>
+    <div class="ls-cell"><i>Network</i><b>{{ network || '—' }}</b></div>
+    <div class="ls-cell"><i>Signal</i><b>{{ rssi === undefined ? '—' : rssi + ' dBm' }}</b></div>
+    <div class="ls-cell"><i>Free disk</i><b>{{ storageFree || '—' }}</b></div>
+    <div class="ls-cell"><i>IP</i><b>{{ ip || '—' }}</b></div>
+  </div>
+
+  <div class="ls-foot" ng-if="!online">
+    Nothing heard yet. The agent publishes to <code>afif/link/&lt;device&gt;/state</code>.
+  </div>
+</div>
+
+<style>
+  .ls-wrap { font-family: 'Segoe UI', Arial, sans-serif; padding: 2px; }
+  .ls-head { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+  .ls-led { width: 9px; height: 9px; border-radius: 50%; background: #4a5f8a; flex: none; }
+  .ls-led.on { background: #00e676; box-shadow: 0 0 8px #00e67699; }
+  .ls-led.off { background: #ff5252; box-shadow: 0 0 8px #ff525299; }
+  .ls-name { color: #e0f0ff; font-weight: 600; font-size: .9rem; }
+  .ls-ts { margin-left: auto; color: #4d699a; font-size: .65rem; font-family: Consolas, monospace; }
+
+  .ls-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(92px, 1fr)); gap: 7px; }
+  .ls-cell { background: #081530; border: 1px solid #16305c; border-radius: 7px;
+    padding: 7px 8px; text-align: center; }
+  .ls-cell i { display: block; font-style: normal; font-size: .6rem; color: #5f7bad;
+    text-transform: uppercase; letter-spacing: .04em; }
+  .ls-cell b { display: block; color: #7fe3ff; font-size: .85rem; font-family: Consolas, monospace;
+    margin-top: 3px; }
+
+  .ls-foot { margin-top: 9px; font-size: .68rem; color: #4d699a; }
+  .ls-foot code { background: #0e1f3d; padding: 1px 4px; border-radius: 3px; color: #8fd4ff; }
+</style>
+
+<script>
+  (function (scope) {
+    scope.$watch('msg', function (msg) {
+      if (!msg || !msg.payload || typeof msg.payload !== 'object') return;
+      var p = msg.payload;
+      scope.device = p.device;
+      scope.online = p.online !== false;
+      scope.ts = p.ts || new Date().toLocaleTimeString();
+      scope.battery = p.battery;
+      scope.charging = p.charging;
+      scope.network = p.network;
+      scope.rssi = p.rssi;
+      scope.storageFree = p.storageFree;
+      scope.ip = p.ip;
+      scope.uptime = p.uptime;
+    });
+  })(scope);
+</script>

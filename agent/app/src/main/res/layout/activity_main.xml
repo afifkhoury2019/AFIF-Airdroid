@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/afif_bg"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="20dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/app_name"
+            android:textColor="@color/afif_accent"
+            android:textSize="22sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:layout_marginBottom="18dp"
+            android:text="Device agent for the PowerChain dashboard"
+            android:textColor="@color/afif_muted"
+            android:textSize="12sp" />
+
+        <TextView style="@style/Label" android:text="MQTT broker" />
+        <EditText
+            android:id="@+id/edBroker"
+            style="@style/Field"
+            android:hint="tcp://192.168.1.10:1883 or ws://host:9001/mqtt"
+            android:inputType="textUri" />
+
+        <TextView style="@style/Label" android:text="Device id" />
+        <EditText
+            android:id="@+id/edDevice"
+            style="@style/Field"
+            android:hint="phone-01"
+            android:inputType="text" />
+
+        <TextView style="@style/Label" android:text="Shared token (optional)" />
+        <EditText
+            android:id="@+id/edToken"
+            style="@style/Field"
+            android:hint="must match the flow's token"
+            android:inputType="textPassword" />
+
+        <TextView style="@style/Label" android:text="File server port" />
+        <EditText
+            android:id="@+id/edPort"
+            style="@style/Field"
+            android:hint="8080"
+            android:inputType="number" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="16dp">
+
+            <Button
+                android:id="@+id/btnStart"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:text="Save &amp; start" />
+
+            <Button
+                android:id="@+id/btnStop"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:text="Stop" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="4dp">
+
+            <Button
+                android:id="@+id/btnNotif"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:text="Notification access" />
+
+            <Button
+                android:id="@+id/btnAccess"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:text="Share folder" />
+        </LinearLayout>
+
+        <TextView style="@style/Label" android:layout_marginTop="16dp" android:text="Status" />
+        <TextView
+            android:id="@+id/tvStatus"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/afif_surface"
+            android:padding="12dp"
+            android:text="stopped"
+            android:textColor="@color/afif_text"
+            android:textSize="13sp" />
+
+        <TextView style="@style/Label" android:layout_marginTop="16dp" android:text="Log" />
+        <TextView
+            android:id="@+id/tvLog"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/afif_surface"
+            android:fontFamily="monospace"
+            android:minLines="6"
+            android:padding="12dp"
+            android:textColor="@color/afif_muted"
+            android:textSize="11sp" />
+
+    </LinearLayout>
+</ScrollView>

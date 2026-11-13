@@ -1,0 +1,96 @@
+name: build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  flows:
+    name: Validate Node-RED flows
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Rebuild flow files from templates
+        run: python nodered/build_flow.py --no-merge
+      - name: Structural validation
+        run: python nodered/validate_flow.py
+      - name: Fail on drift between templates and committed flow
+        run: |
+          git diff --exit-code -- nodered/flows-engineering-tab.json nodered/flows-agent-bridge.json \
+            || (echo "::error::Committed flow JSON is stale - run nodered/build_flow.py" && exit 1)
+
+  apk:
+    name: Build AFIF Link APK
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - uses: android-actions/setup-android@v3
+
+      - uses: gradle/actions/setup-gradle@v3
+        with:
+          gradle-version: "8.7"
+
+      - name: Assemble
+        working-directory: agent
+        env:
+          VERSION_CODE: ${{ github.run_number }}
+          VERSION_NAME: 1.0.${{ github.run_number }}
+          KEYSTORE_B64: ${{ secrets.KEYSTORE_B64 }}
+          KS_PASS: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASS: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          if [ -n "${KEYSTORE_B64:-}" ]; then
+            echo "$KEYSTORE_B64" | base64 -d > "$RUNNER_TEMP/afif.jks"
+            export SIGNING_STORE_FILE="$RUNNER_TEMP/afif.jks"
+            export SIGNING_STORE_PASSWORD="${KS_PASS:-}"
+            export SIGNING_KEY_ALIAS="${KEY_ALIAS:-afif}"
+            export SIGNING_KEY_PASSWORD="${KEY_PASS:-}"
+            gradle assembleRelease --no-daemon --stacktrace
+            mkdir -p "$RUNNER_TEMP/out"
+            cp app/build/outputs/apk/release/*.apk "$RUNNER_TEMP/out/afif-link-${VERSION_NAME}.apk"
+          else
+            echo "::notice::No keystore secret set - building a debug APK."
+            gradle assembleDebug --no-daemon --stacktrace
+            mkdir -p "$RUNNER_TEMP/out"
+            cp app/build/outputs/apk/debug/*.apk "$RUNNER_TEMP/out/afif-link-debug-${VERSION_NAME}.apk"
+          fi
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: afif-link-apk
+          path: ${{ runner.temp }}/out/*.apk
+          if-no-files-found: error
+          retention-days: 30
+
+  release:
+    name: Publish release
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: [apk, flows]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: afif-link-apk
+          path: dist
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: build-${{ github.run_number }}
+          name: AFIF Link build ${{ github.run_number }}
+          generate_release_notes: true
+          files: dist/*.apk
