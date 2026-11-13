@@ -11,9 +11,11 @@ android {
         applicationId = "uk.afif.link"
         minSdk = 26
         targetSdk = 34
-        versionCode = (System.getenv("VERSION_CODE") ?: "1").toInt()
-        versionName = System.getenv("VERSION_NAME") ?: "1.0.0"
-        resValue("string", "app_version_name", versionName)
+        val vCode = (System.getenv("VERSION_CODE") ?: "1").toInt()
+        val vName = System.getenv("VERSION_NAME") ?: "1.0.0"
+        versionCode = vCode
+        versionName = vName
+        resValue("string", "app_version_name", vName)
     }
 
     signingConfigs {
