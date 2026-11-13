@@ -38,11 +38,19 @@ jobs:
           distribution: temurin
           java-version: "17"
 
-      - uses: android-actions/setup-android@v3
+      # The ubuntu-latest image already ships the Android SDK.
+      # Do NOT add android-actions/setup-android here: it runs
+      # `sdkmanager "tools"`, which no longer exists and aborts the job.
 
       - uses: gradle/actions/setup-gradle@v3
         with:
           gradle-version: "8.7"
+
+      - name: Accept Android SDK licences
+        run: |
+          yes 2>/dev/null | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses >/dev/null 2>&1 || true
+          echo "ANDROID_HOME=$ANDROID_HOME"
+          ls "$ANDROID_HOME/platforms" || true
 
       - name: Assemble
         working-directory: agent
