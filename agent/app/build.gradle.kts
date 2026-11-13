@@ -48,6 +48,23 @@ android {
     kotlinOptions { jvmTarget = "17" }
 
     buildFeatures { buildConfig = true }
+
+    // Two builds from one codebase:
+    //   standard -> no telephony code, no SMS permissions at all (safe default)
+    //   sms      -> adds SMS read/send/relay, separate app id so both can coexist
+    flavorDimensions += "capability"
+    productFlavors {
+        create("standard") {
+            dimension = "capability"
+            buildConfigField("boolean", "HAS_SMS", "false")
+        }
+        create("sms") {
+            dimension = "capability"
+            buildConfigField("boolean", "HAS_SMS", "true")
+            applicationIdSuffix = ".sms"
+            versionNameSuffix = "-sms"
+        }
+    }
 }
 
 dependencies {

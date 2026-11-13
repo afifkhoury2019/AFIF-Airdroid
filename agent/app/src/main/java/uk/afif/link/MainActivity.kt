@@ -76,9 +76,12 @@ class MainActivity : AppCompatActivity() {
     private fun askPermissions() {
         val want = mutableListOf<String>()
         if (Build.VERSION.SDK_INT >= 33) want.add(Manifest.permission.POST_NOTIFICATIONS)
-        want.add(Manifest.permission.SEND_SMS)
-        want.add(Manifest.permission.READ_SMS)
-        want.add(Manifest.permission.RECEIVE_SMS)
+        // Telephony permissions exist only in the `sms` flavour.
+        if (SmsIo.AVAILABLE) {
+            want.add(Manifest.permission.SEND_SMS)
+            want.add(Manifest.permission.READ_SMS)
+            want.add(Manifest.permission.RECEIVE_SMS)
+        }
 
         val missing = want.filter {
             ContextCompat.checkSelfPermission(this, it) != PackageManager.PERMISSION_GRANTED

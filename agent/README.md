@@ -35,6 +35,35 @@ cd agent
 gradle assembleDebug
 ```
 
+## If Google Play Protect blocks the install
+
+Play Protect flags **sideloaded APKs that request SMS access** and are signed with a
+throwaway debug key. The wording ("can request sensitive data … identity theft") describes
+the *permission pattern*, not evidence of malicious code in this app — it is the same
+heuristic that catches real banking trojans.
+
+CI produces two builds so you can pick the risk you actually need:
+
+| File | SMS access | Notes |
+|---|---|---|
+| `afif-link-standard-*.apk` | **none** | no telephony code compiled in; far less likely to be flagged |
+| `afif-link-sms-*.apk` | read / send / receive | the warning is expected — this is the exact pattern Play Protect looks for |
+
+To install anyway while testing: **Play Store → profile → Play Protect → ⚙ → turn off
+"Scan apps with Play Protect"**, install, then turn scanning back on.
+
+Two more things that trip people up:
+
+* **Uninstall the previous build first.** Each CI run generates a fresh debug keystore, so
+  consecutive debug APKs have different signatures and Android refuses the upgrade with
+  "App not installed".
+* **A signed release removes the debug flag**, which is the single biggest scoring factor.
+  Add the four keystore secrets below and CI switches to `assemble*Release` automatically.
+  That gives you a stable signature, so updates install over the top.
+
+For wider distribution the clean answer is a Play Console **internal testing** track —
+Google signs the app, no warning, no sideloading.
+
 ## First run
 
 1. Install the APK, open **AFIF Link**.
@@ -62,12 +91,15 @@ Reply on `afif/link/<device>/res`:
 |---|---|---|
 | `ping` | — | liveness |
 | `info` | — | battery, charging, network, IP, storage, uptime, model |
-| `sms.list` | `limit` | newest inbox messages |
-| `sms.send` | `to`, `text` | sends SMS (multipart split handled) |
+| `sms.list` | `limit` | newest inbox messages *(sms flavour only)* |
+| `sms.send` | `to`, `text` | sends SMS, multipart split handled *(sms flavour only)* |
 | `notify.dump` | `limit` | cached notifications (needs notification access) |
 | `file.list` | `path` | JSON listing of the app's external files dir |
 | `toast` | `text` | shows a toast on the phone |
 | `vibrate` | `ms` | vibrates |
+
+In the `standard` flavour the SMS commands reply
+`{"ok": false, "message": "SMS is not part of this build; use the -sms flavour"}`.
 
 Telemetry on `afif/link/<device>/state` every 30 s; inbound SMS on `…/event`.
 

@@ -63,21 +63,27 @@ jobs:
           KEY_PASS: ${{ secrets.KEY_PASSWORD }}
         run: |
           set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/out"
           if [ -n "${KEYSTORE_B64:-}" ]; then
             echo "$KEYSTORE_B64" | base64 -d > "$RUNNER_TEMP/afif.jks"
             export SIGNING_STORE_FILE="$RUNNER_TEMP/afif.jks"
             export SIGNING_STORE_PASSWORD="${KS_PASS:-}"
             export SIGNING_KEY_ALIAS="${KEY_ALIAS:-afif}"
             export SIGNING_KEY_PASSWORD="${KEY_PASS:-}"
-            gradle assembleRelease --no-daemon --stacktrace
-            mkdir -p "$RUNNER_TEMP/out"
-            cp app/build/outputs/apk/release/*.apk "$RUNNER_TEMP/out/afif-link-${VERSION_NAME}.apk"
+            TASK="Release"; DIR="release"
           else
-            echo "::notice::No keystore secret set - building a debug APK."
-            gradle assembleDebug --no-daemon --stacktrace
-            mkdir -p "$RUNNER_TEMP/out"
-            cp app/build/outputs/apk/debug/*.apk "$RUNNER_TEMP/out/afif-link-debug-${VERSION_NAME}.apk"
+            echo "::notice::No keystore secret set - building debug APKs (Play Protect will warn)."
+            TASK="Debug"; DIR="debug"
           fi
+          gradle "assembleStandard${TASK}" "assembleSms${TASK}" --no-daemon --stacktrace
+          for f in standard sms; do
+            src="app/build/outputs/apk/$f/$DIR"
+            [ -d "$src" ] || continue
+            for apk in "$src"/*.apk; do
+              cp "$apk" "$RUNNER_TEMP/out/afif-link-${f}-${VERSION_NAME}.apk"
+            done
+          done
+          ls -l "$RUNNER_TEMP/out"
 
       - uses: actions/upload-artifact@v4
         with:

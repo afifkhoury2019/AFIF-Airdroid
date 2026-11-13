@@ -28,8 +28,14 @@ object CommandRouter {
             when (cmd) {
                 "ping" -> reply(id, cmd, true, "pong", null)
                 "info" -> reply(id, cmd, true, null, DeviceState.snapshot(ctx))
-                "sms.list" -> reply(id, cmd, true, null, JSONObject().put("messages", SmsIo.list(ctx, args.optInt("limit", 20))))
-                "sms.send" -> {
+                "sms.list" -> if (!SmsIo.AVAILABLE) {
+                    reply(id, cmd, false, "SMS is not part of this build; use the -sms flavour", null)
+                } else {
+                    reply(id, cmd, true, null, JSONObject().put("messages", SmsIo.list(ctx, args.optInt("limit", 20))))
+                }
+                "sms.send" -> if (!SmsIo.AVAILABLE) {
+                    reply(id, cmd, false, "SMS is not part of this build; use the -sms flavour", null)
+                } else {
                     val to = args.optString("to", "")
                     val text = args.optString("text", "")
                     if (to.isBlank() || text.isBlank()) {
