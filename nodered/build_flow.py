@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 """Assemble the PowerChain "Engineering Tools" tab flow and merge it into an existing flows.json.
 
 Usage:
@@ -169,7 +169,7 @@ def build_agent_bridge():
         "icon": "devices", "order": 7, "disabled": False, "hidden": False,
     }, {
         "id": "afif-link-group", "type": "ui_group",
-        "name": "AFIF Link – phone agent", "tab": tab, "order": 1,
+        "name": "AFIF Link â€“ phone agent", "tab": tab, "order": 1,
         "disp": True, "width": "30", "collapse": False,
     }, {
         "id": "afif-link-status", "type": "ui_template", "z": tab,
@@ -247,11 +247,11 @@ def main():
     if errs:
         print("FLOW VALIDATION ERRORS:"); [print("  -", e) for e in errs]; sys.exit(1)
 
-    with open(os.path.join(HERE, "flows-engineering-tab.json"), "w", encoding="utf-8") as f:
+    with open(os.path.join(HERE, "flows-engineering-tab.json"), "w", encoding="utf-8", newline="\n") as f:
         json.dump(tab, f, indent=4, ensure_ascii=False)
 
     bridge = build_agent_bridge()
-    with open(os.path.join(HERE, "flows-agent-bridge.json"), "w", encoding="utf-8") as f:
+    with open(os.path.join(HERE, "flows-agent-bridge.json"), "w", encoding="utf-8", newline="\n") as f:
         json.dump(bridge, f, indent=4, ensure_ascii=False)
 
     print("standalone tab   : %d nodes -> flows-engineering-tab.json" % len(tab))
@@ -273,7 +273,7 @@ def main():
         print("MERGED VALIDATION ERRORS:"); [print("  -", e) for e in errs]; sys.exit(1)
 
     out = os.path.join(HERE, "flows-engineering-tab.merged.json")
-    with open(out, "w", encoding="utf-8") as f:
+    with open(out, "w", encoding="utf-8", newline="\n") as f:
         json.dump(merged, f, indent=4, ensure_ascii=False)
 
     tabs = [n["name"] for n in merged if n["type"] == "ui_tab"]

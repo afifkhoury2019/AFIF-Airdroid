@@ -11,7 +11,7 @@
     {
         "id": "afif-link-group",
         "type": "ui_group",
-        "name": "AFIF Link – phone agent",
+        "name": "AFIF Link â€“ phone agent",
         "tab": "afif-link-tab",
         "order": 1,
         "disp": true,
